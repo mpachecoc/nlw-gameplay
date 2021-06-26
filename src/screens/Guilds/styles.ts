@@ -1,13 +1,15 @@
 import { StyleSheet } from  'react-native'
+
 import { theme } from '../../global/styles/theme'
 
 export const styles = StyleSheet.create({
   container: {
-    width: '70%',
-    height: 1,
-    backgroundColor: theme.colors.secondary40,
-    marginTop: 2,
-    marginVertical: 31,
-    alignSelf: 'flex-end'
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 24
   },
+
+  guilds: {
+    width: '100%',
+  }
 })
