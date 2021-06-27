@@ -25,10 +25,18 @@ export function AppointmentCreate() {
   function handleOpenGuilds() {
     setOpenGuildModal(true)
   }
+
+  function handleCloseGuilds() {
+    setOpenGuildModal(false)
+  }
   
   function handleGuildSelect(guildSelected: GuildProps) {
     setGuild(guildSelected)
     setOpenGuildModal(false)
+  }
+
+  function handleCategorySelected(categoryId: string) {
+    setCategory(categoryId)
   }
 
   return (
@@ -36,8 +44,8 @@ export function AppointmentCreate() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <ScrollView>
-        <Background>
+      <Background>
+        <ScrollView>
           <Header title="Schedule Match" />
 
           <Text 
@@ -48,7 +56,7 @@ export function AppointmentCreate() {
 
           <CategorySelect 
             hasCheckBox
-            setCategory={setCategory}
+            setCategory={handleCategorySelected}
             categorySelected={category}
           />
 
@@ -108,10 +116,10 @@ export function AppointmentCreate() {
               <Button title="Schedule" />
             </View>
           </View>
-        </Background>
-      </ScrollView>
+        </ScrollView>
+      </Background>
 
-      <ModalView visible={openGuildModal}>
+      <ModalView visible={openGuildModal} closeModal={handleCloseGuilds} >
         <Guilds handleGuildSelect={handleGuildSelect} />
       </ModalView>
     </KeyboardAvoidingView>
