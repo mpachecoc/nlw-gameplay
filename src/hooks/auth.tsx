@@ -1,14 +1,15 @@
-import React, { createContext, useContext, useState, ReactNode } from "react"
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react"
 import * as AuthSession from 'expo-auth-session'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { api } from "../services/api"
-import {
-  REDIRECT_URI,
-  SCOPE,
-  RESPONSE_TYPE,
-  CLIENT_ID,
-  CDN_IMAGE
-} from '../configs'
+import { COLLECTION_USERS } from "../configs/database"
+
+const { REDIRECT_URI } = process.env
+const { SCOPE } = process.env
+const { RESPONSE_TYPE } = process.env
+const { CLIENT_ID } = process.env
+const { CDN_IMAGE } = process.env
 
 type User = {
   id: string;
@@ -31,7 +32,8 @@ type AuthProviderProps = {
 
 type AuthorizatioResponse = AuthSession.AuthSessionResult & {
   params: {
-    access_token: string;
+    access_token?: string;
+    error?: string;
   }
 }
 
@@ -40,6 +42,22 @@ export const AuthContext = createContext({} as AuthContextData)
 function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User>({} as User)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    loadUserStoragedData()
+  }, [])
+
+  async function loadUserStoragedData() {
+    const storaged = await AsyncStorage.getItem(COLLECTION_USERS)
+
+    if (storaged) {
+      const userLogged = JSON.parse(storaged) as User
+
+      api.defaults.headers.authorization = `Bearer ${userLogged.token}`
+
+      setUser(userLogged)
+    }
+  }
 
   async function signIn() {
     try {
@@ -50,7 +68,7 @@ function AuthProvider({ children }: AuthProviderProps) {
       const { params, type } = await AuthSession
         .startAsync({ authUrl }) as AuthorizatioResponse
       
-      if (type === 'success') {
+      if (type === 'success' && !params.error) {
         api.defaults.headers.authorization = `Bearer ${params.access_token}`
 
         const userInfo = await api.get('/users/@me')
@@ -58,19 +76,22 @@ function AuthProvider({ children }: AuthProviderProps) {
         const firstName = userInfo.data.username.split(' ')[0]
         userInfo.data.avatar = `${CDN_IMAGE}/avatars/${userInfo.data.id}/${userInfo.data.avatar}.png`
 
-        setUser({
+        const userData = {
           ...userInfo.data,
           firstName,
           token: params.access_token
-        })
+        }
 
-        setLoading(false)
-      } else {
-        setLoading(false)
-      }
+        await AsyncStorage.setItem(COLLECTION_USERS, JSON.stringify(userData))
+
+        setUser(userData)
+      } 
 
     } catch {
       throw new Error('Not possible to authenticate')
+
+    } finally {
+      setLoading(false)
     }
   }
 
