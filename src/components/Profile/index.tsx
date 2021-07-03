@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, Text } from 'react-native'
+import { View, Text, Alert } from 'react-native'
+import { RectButton } from 'react-native-gesture-handler'
 
 import { useAuth } from '../../hooks/auth'
 
@@ -8,12 +9,29 @@ import { Avatar } from '../Avatar'
 import { styles } from './styles'
 
 export function Profile() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+
+  function handleLogout() {
+    Alert.alert('Logout', 'Do you want to logout?', 
+    [
+      {
+        text: 'No',
+        style: 'cancel'
+      },
+      {
+        text: 'Yes',
+        onPress: () => logout()
+      }
+    ]
+    )
+  }
 
   return (
     <View style={styles.container}>
 
-      <Avatar urlImage={user.avatar} />
+      <RectButton onPress={handleLogout}>
+        <Avatar urlImage={user.avatar} />
+      </RectButton>
 
       <View>
         <View style={styles.user}>
